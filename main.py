@@ -68,27 +68,27 @@ dataset = {
 }
 
 
-# 1. Подготовка обучающих данных
+
 texts, labels = [], []
 for category, task_list in dataset.items():
     for task in task_list:
         texts.append(task.lower())
         labels.append(category)
 
-# Векторизация текстов (символьные n-граммы от 3 до 5)
+
 vectorizer = CountVectorizer(analyzer='char_wb', ngram_range=(3, 5))
 X_vectorized = vectorizer.fit_transform(texts).toarray()
 
-# Кодирование текстовых меток в числа (0, 1, 2...)
+
 label_encoder = LabelEncoder()
 y_encoded = label_encoder.fit_transform(labels)
 
-# Перевод в тензоры PyTorch
+
 X_tensor = torch.tensor(X_vectorized, dtype=torch.float32)
 y_tensor = torch.tensor(y_encoded, dtype=torch.long)
 
 
-# 2. Архитектура легкой нейросети
+
 class LightweightClassifier(nn.Module):
     def __init__(self, input_dim, output_dim):
         super(LightweightClassifier, self).__init__()
@@ -103,7 +103,7 @@ class LightweightClassifier(nn.Module):
         return out
 
 
-# 3. Инициализация и обучение
+
 input_size = X_tensor.shape[1]
 num_classes = len(label_encoder.classes_)
 
@@ -123,12 +123,12 @@ for epoch in range(epochs):
     loss.backward()
     optimizer.step()
     
-    # Контроль обучения: выводим лосс каждые 10 эпох
+
     if (epoch + 1) % 10 == 0:
         print(f"Эпоха [{epoch+1}/{epochs}], Ошибка (Loss): {loss.item():.4f}")
 
 
-# 4. Проверка на новых тестовых задачах
+
 test_tasks = [
     "Сделать сайт-визитку для адвоката на Тильде.",
     "Написать приложение под айфон для учета калорий.",
@@ -138,11 +138,11 @@ test_tasks = [
     "Добавить корзину и оплату картами на веб сайт."
 ]
 
-# Переводим модель в режим оценки
+
 model.eval()
 softmax = nn.Softmax(dim=1)
 
-# Батчевая обработка тестовых данных
+
 test_texts_cleaned = [task.lower() for task in test_tasks]
 X_test_vectorized = vectorizer.transform(test_texts_cleaned).toarray()
 X_test_tensor = torch.tensor(X_test_vectorized, dtype=torch.float32)
@@ -152,11 +152,11 @@ with torch.no_grad():
     probabilities = softmax(logits)
     confidences, predicted_indices = torch.max(probabilities, dim=1)
 
-# Декодируем сразу весь массив предсказанных индексов
+
 predicted_labels = label_encoder.inverse_transform(predicted_indices.numpy())
 
 print("\nРезультаты классификации нейросети:\n" + "="*50)
-# Корректный вывод результатов предсказания
+
 for task, label, conf in zip(test_tasks, predicted_labels, confidences):
     print(f"Текст: \"{task}\"")
     print(f"Робо-категория: {label} (Уверенность: {conf.item():.2%})")
